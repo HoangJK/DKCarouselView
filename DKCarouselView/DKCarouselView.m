@@ -8,6 +8,7 @@
 //
 
 #import "DKCarouselView.h"
+#import "UIImageView+WebCache.h"
 
 typedef void(^DKCarouselViewTapBlock)();
 
@@ -80,13 +81,12 @@ typedef void(^DKCarouselViewTapBlock)();
 @property (nonatomic, weak) UIScrollView *scrollView;
 @property (nonatomic, copy) NSArray *items;
 @property (nonatomic, strong) NSMutableArray *carouselItemViews;
-@property (nonatomic, readwrite, weak) UIPageControl *pageControl;
+@property (nonatomic, weak) UIPageControl *pageControl;
 @property (nonatomic, assign) CGSize lastSize;
 
 @property (nonatomic, strong) NSTimer *autoPagingTimer;
 @property (nonatomic, copy) DKCarouselViewDidSelectBlock didSelectBlock;
 @property (nonatomic, copy) DKCarouselViewDidChangeBlock didChangeBlock;
-@property (nonatomic, copy) DKCarouselViewDidScrollBlock didScrollBlock;
 
 @end
 
@@ -121,16 +121,14 @@ typedef void(^DKCarouselViewTapBlock)();
     UIScrollView *scrollView = [UIScrollView new];
     scrollView.showsHorizontalScrollIndicator = scrollView.showsVerticalScrollIndicator = NO;
     scrollView.pagingEnabled = YES;
+    scrollView.bounces = NO;
     scrollView.scrollsToTop = NO;
-    scrollView.bounces = _bounce;
     scrollView.delegate = self;
     
-    self.indicatorTintColor = [UIColor whiteColor];
-    self.indicatorTintColorUnselected = [UIColor lightGrayColor];
+    self.indicatorTintColor = [UIColor lightGrayColor];
     
     UIPageControl *pageControl = [UIPageControl new];
     pageControl.currentPageIndicatorTintColor = self.indicatorTintColor;
-    pageControl.pageIndicatorTintColor = self.indicatorTintColorUnselected;
     pageControl.userInteractionEnabled = NO;
     
     [self addSubview:scrollView];
@@ -141,6 +139,7 @@ typedef void(^DKCarouselViewTapBlock)();
     
     self.clipsToBounds = YES;
     self.finite = NO;
+    self.swipeRightEnable = YES;
 }
 
 // Subclasses can override this method as needed to perform more precise layout of their subviews.
@@ -194,16 +193,8 @@ typedef void(^DKCarouselViewTapBlock)();
 
 - (void)setFinite:(BOOL)finite {
     _finite = finite;
-}
-
-- (void)setBounce:(BOOL)bounce {
-    _bounce = bounce;
-    self.scrollView.bounces = bounce;
-}
-
-- (void)setScrollEnabled:(BOOL)scrollEnabled {
-    _scrollEnabled = scrollEnabled;
-    self.scrollView.scrollEnabled = scrollEnabled;
+    
+    self.scrollView.bounces = finite;
 }
 
 - (void)setIndicatorTintColor:(UIColor *)indicatorTintColor {
@@ -212,26 +203,13 @@ typedef void(^DKCarouselViewTapBlock)();
     self.pageControl.currentPageIndicatorTintColor = indicatorTintColor;
 }
 
-- (void)setIndicatorTintColorUnselected:(UIColor *)indicatorTintColorUnselected {
-    _indicatorTintColorUnselected = indicatorTintColorUnselected;
-    
-    self.pageControl.pageIndicatorTintColor = indicatorTintColorUnselected;
-}
-
 - (CGSize)indicatorSize {
     return [self.pageControl sizeForNumberOfPages:self.pageControl.numberOfPages];
 }
 
-- (void)setSelectedPage: (NSUInteger)selectedPage {
-    self.pageControl.currentPage = self.currentPage = selectedPage;
-    if (self.carouselItemViews.count > selectedPage){
-        if (self.finite) {
-            [self.scrollView setContentOffset:CGPointMake(kScrollViewFrameWidth * selectedPage, 0) animated:YES];
-        }else{
-            [self setupViews];
-        }
-    }
-}
+- (void)setEnableSwipeRight:(BOOL)enable {
+    self.swipeRightEnable = enable;
+};
 
 -(void)setItems:(NSArray *)items {
     if (items == nil) return;
@@ -246,8 +224,7 @@ typedef void(^DKCarouselViewTapBlock)();
     _items = [items copy];
     
     self.pageControl.numberOfPages = _items.count;
-    self.currentPage = MIN(self.currentPage, self.pageControl.numberOfPages-1);
-    self.pageControl.currentPage = self.currentPage;
+    self.pageControl.currentPage = self.currentPage = 0;
     
     _scrollView.scrollEnabled = _items.count > 1;
     
@@ -256,7 +233,10 @@ typedef void(^DKCarouselViewTapBlock)();
         DKClickableImageView *itemView = [DKClickableImageView new];
         
         itemView.userInteractionEnabled = YES;
-        if ([item isKindOfClass:[DKCarouselViewItem class]]) {
+        if ([item isKindOfClass:[DKCarouselURLItem class]]) {
+            NSString *imageUrl = [(DKCarouselURLItem *)item imageUrl];
+            [itemView sd_setImageWithURL:[NSURL URLWithString:imageUrl] placeholderImage:self.defaultImage];
+        } else if ([item isKindOfClass:[DKCarouselViewItem class]]) {
             UIView *customView = [(DKCarouselViewItem *)item view];
             customView.frame = itemView.bounds;
             customView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -287,10 +267,6 @@ typedef void(^DKCarouselViewTapBlock)();
 
 - (void)setDidChangeBlock:(DKCarouselViewDidChangeBlock)didChangeBlock {
     _didChangeBlock = didChangeBlock;
-}
-
-- (void)setDidScrollBlock:(DKCarouselViewDidScrollBlock)didScrollBlock {
-    _didScrollBlock = didScrollBlock;
 }
 
 - (void)setAutoPagingForInterval:(NSTimeInterval)timeInterval {
@@ -351,7 +327,7 @@ typedef void(^DKCarouselViewTapBlock)();
             if (view.superview == nil) {
                 [self.scrollView addSubview:view];
             }
-            
+
             view.frame = CGRectMake(i * kScrollViewFrameWidth,
                                     0,
                                     kScrollViewFrameWidth,
@@ -398,11 +374,22 @@ typedef void(^DKCarouselViewTapBlock)();
 #pragma mark - UIScrollView Delegate Methods
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (scrollView.isDragging) { 
+    if(!self.swipeRightEnable) {
+        CGPoint translation = [scrollView.panGestureRecognizer translationInView:scrollView.superview];
+        if(translation.x > 0) {
+            // react to dragging left
+            
+        } else
+        {
+            // react to dragging right
+            scrollView.contentSize = CGSizeMake(scrollView.frame.size.width + 1,scrollView.frame.size.height);
+        }
+        
+    }
+    else if (scrollView.isDragging) {
         self.autoPagingTimer.fireDate = [NSDate dateWithTimeIntervalSinceNow:self.autoPagingTimer.timeInterval];
         
-        // Removed - causes weird issue when only 2 slides present
-        /*if (self.carouselItemViews.count == 2) {
+        if (self.carouselItemViews.count == 2) {
             if (scrollView.contentOffset.x < kScrollViewFrameWidth) {
                 UIView *previousView = self.carouselItemViews[GetPreviousIndex()];
                 if (!CGRectEqualToRect(CGRectMake(0, 0, kScrollViewFrameWidth, kScrollViewFrameHeight), previousView.frame)) {
@@ -414,15 +401,14 @@ typedef void(^DKCarouselViewTapBlock)();
                     [self insertNextPage];
                 }
             }
-        }*/
-        
-        if (self.didScrollBlock != nil) {
-            self.didScrollBlock(self, scrollView.contentOffset.x);
         }
     }
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    if(!self.swipeRightEnable) {
+        return;
+    }
     if (self.finite) {
         self.currentPage = scrollView.contentOffset.x / kScrollViewFrameWidth;
     } else {
@@ -436,10 +422,10 @@ typedef void(^DKCarouselViewTapBlock)();
             self.currentPage = GetNextIndex();
         }
         [self setupViews];
-    }
-    
-    if (self.didChangeBlock != nil) {
-        self.didChangeBlock(self, self.currentPage);
+        
+        if (self.didChangeBlock != nil) {
+            self.didChangeBlock(self, self.currentPage);
+        }
     }
     
     self.pageControl.currentPage = self.currentPage;
