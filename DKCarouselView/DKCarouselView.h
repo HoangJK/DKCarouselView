@@ -39,7 +39,6 @@
 
 typedef void(^DKCarouselViewDidSelectBlock)(DKCarouselItem *item, NSInteger index);
 typedef void(^DKCarouselViewDidChangeBlock)(DKCarouselView *view, NSInteger index);
-typedef void(^DKCarouselViewDidScrollBlock)(DKCarouselView *view, NSInteger offset);
 
 @property (nonatomic, readonly) NSUInteger numberOfItems;
 
@@ -49,21 +48,21 @@ typedef void(^DKCarouselViewDidScrollBlock)(DKCarouselView *view, NSInteger offs
 // set page changed block
 - (void)setDidChangeBlock:(DKCarouselViewDidChangeBlock)didChangeBlock;
 
-// set page scrolling
-- (void)setDidScrollBlock:(DKCarouselViewDidScrollBlock)didScrollBlock;
-
 // placeholder for DKCarouselURLItem
 @property (nonatomic, strong) UIImage *defaultImage;
 
 // set infinite slide or not, defaults to NO.
 @property (nonatomic, assign, getter = isFinite) BOOL finite;
-@property (nonatomic, assign) BOOL bounce;
-@property (nonatomic, assign) BOOL scrollEnabled;
 
-// set selected page index
-@property (nonatomic, assign) NSUInteger selectedPage;
+// set disable swipe right
+@property (nonatomic, assign) BOOL swipeRightEnable;
 
 - (void)setItems:(NSArray *)items;
+
+- (void)killScroll;
+
+// disable swipe left
+- (void)setEnableSwipeRight:(BOOL)enable;
 
 // auto paging.
 - (void)setAutoPagingForInterval:(NSTimeInterval)timeInterval;
@@ -72,9 +71,7 @@ typedef void(^DKCarouselViewDidScrollBlock)(DKCarouselView *view, NSInteger offs
 // indicator
 @property (nonatomic, assign) BOOL indicatorIsVisible; // by default page indicator is visible
 @property (nonatomic, strong) UIColor *indicatorTintColor;
-@property (nonatomic, strong) UIColor *indicatorTintColorUnselected;
 @property (nonatomic, assign) CGPoint indicatorOffset; // default offset is CGPointZero, the indicator is centered horizontally.
 @property (nonatomic, readonly) CGSize indicatorSize; // returns minimum size for given items.
-@property (nonatomic, readonly, weak) UIPageControl *pageControl;
 
 @end
