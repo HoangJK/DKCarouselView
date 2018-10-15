@@ -87,6 +87,7 @@ typedef void(^DKCarouselViewTapBlock)();
 @property (nonatomic, copy) DKCarouselViewDidSelectBlock didSelectBlock;
 @property (nonatomic, copy) DKCarouselViewDidChangeBlock didChangeBlock;
 @property (nonatomic, copy) DKCarouselViewDidScrollBlock didScrollBlock;
+@property (nonatomic, copy) DKCarouselViewWillBeginDraggingBlock willBeginDragging;
 
 @end
 
@@ -272,6 +273,10 @@ typedef void(^DKCarouselViewTapBlock)();
     _didScrollBlock = didScrollBlock;
 }
 
+- (void)setWillBeginDraggingBlock:(DKCarouselViewWillBeginDraggingBlock)willBeginDragging {
+    _willBeginDragging = willBeginDragging;
+}
+
 - (void)setAutoPagingForInterval:(NSTimeInterval)timeInterval {
     assert(timeInterval >= 0);
     if (self.autoPagingTimer.timeInterval == timeInterval) {
@@ -377,37 +382,14 @@ typedef void(^DKCarouselViewTapBlock)();
 #pragma mark - UIScrollView Delegate Methods
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if(!self.swipeRightEnable) {
-        CGPoint translation = [scrollView.panGestureRecognizer translationInView:scrollView.superview];
-        if(translation.x > 0) {
-            // react to dragging left
-            
-        } else
-        {
-            // react to dragging right
-            scrollView.contentSize = CGSizeMake(scrollView.frame.size.width + 1,scrollView.frame.size.height);
-        }
-        
-    }
-//    else if (scrollView.isDragging) {
-//        self.autoPagingTimer.fireDate = [NSDate dateWithTimeIntervalSinceNow:self.autoPagingTimer.timeInterval];
-//
-//        if (self.carouselItemViews.count == 2) {
-//            if (scrollView.contentOffset.x < kScrollViewFrameWidth) {
-//                UIView *previousView = self.carouselItemViews[GetPreviousIndex()];
-//                if (!CGRectEqualToRect(CGRectMake(0, 0, kScrollViewFrameWidth, kScrollViewFrameHeight), previousView.frame)) {
-//                    [self insertPreviousPage];
-//                }
-//            } else if (scrollView.contentOffset.x > kScrollViewFrameWidth * 2) {
-//                UIView *nextView = self.carouselItemViews[GetNextIndex()];
-//                if (!CGRectEqualToRect(CGRectMake(kScrollViewFrameWidth * 2, 0, kScrollViewFrameWidth, kScrollViewFrameHeight), nextView.frame)) {
-//                    [self insertNextPage];
-//                }
-//            }
-//        }
-//    }
     if (self.didScrollBlock != nil) {
         self.didScrollBlock(self,scrollView ,scrollView.contentOffset.x);
+    }
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    if (self.willBeginDragging != nil) {
+        self.willBeginDragging(self,scrollView);
     }
 }
 
