@@ -39,6 +39,7 @@
 
 typedef void(^DKCarouselViewDidSelectBlock)(DKCarouselItem *item, NSInteger index);
 typedef void(^DKCarouselViewDidChangeBlock)(DKCarouselView *view, NSInteger index);
+typedef void(^DKCarouselViewDidScrollBlock)(DKCarouselView *view, UIScrollView *scrollView, NSInteger offset);
 
 @property (nonatomic, readonly) NSUInteger numberOfItems;
 
@@ -47,6 +48,9 @@ typedef void(^DKCarouselViewDidChangeBlock)(DKCarouselView *view, NSInteger inde
 
 // set page changed block
 - (void)setDidChangeBlock:(DKCarouselViewDidChangeBlock)didChangeBlock;
+
+// set page scrolling
+- (void)setDidScrollBlock:(DKCarouselViewDidScrollBlock)didScrollBlock;
 
 // placeholder for DKCarouselURLItem
 @property (nonatomic, strong) UIImage *defaultImage;
@@ -58,8 +62,6 @@ typedef void(^DKCarouselViewDidChangeBlock)(DKCarouselView *view, NSInteger inde
 @property (nonatomic, assign) BOOL swipeRightEnable;
 
 - (void)setItems:(NSArray *)items;
-
-- (void)killScroll;
 
 // disable swipe left
 - (void)setEnableSwipeRight:(BOOL)enable;
