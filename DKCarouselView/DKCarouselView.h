@@ -40,6 +40,7 @@
 typedef void(^DKCarouselViewDidSelectBlock)(DKCarouselItem *item, NSInteger index);
 typedef void(^DKCarouselViewDidChangeBlock)(DKCarouselView *view, NSInteger index);
 typedef void(^DKCarouselViewDidScrollBlock)(DKCarouselView *view, UIScrollView *scrollView, NSInteger offset);
+typedef void(^DKCarouselViewWillBeginDraggingBlock)(DKCarouselView *view, UIScrollView *scrollView);
 
 @property (nonatomic, readonly) NSUInteger numberOfItems;
 
@@ -51,6 +52,9 @@ typedef void(^DKCarouselViewDidScrollBlock)(DKCarouselView *view, UIScrollView *
 
 // set page scrolling
 - (void)setDidScrollBlock:(DKCarouselViewDidScrollBlock)didScrollBlock;
+
+// set page scrolling
+- (void)setWillBeginDraggingBlock:(DKCarouselViewWillBeginDraggingBlock)willBeginDragging;
 
 // placeholder for DKCarouselURLItem
 @property (nonatomic, strong) UIImage *defaultImage;
