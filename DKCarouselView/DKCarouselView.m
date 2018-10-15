@@ -8,7 +8,6 @@
 //
 
 #import "DKCarouselView.h"
-#import "UIImageView+WebCache.h"
 
 typedef void(^DKCarouselViewTapBlock)();
 
@@ -234,8 +233,7 @@ typedef void(^DKCarouselViewTapBlock)();
         
         itemView.userInteractionEnabled = YES;
         if ([item isKindOfClass:[DKCarouselURLItem class]]) {
-            NSString *imageUrl = [(DKCarouselURLItem *)item imageUrl];
-            [itemView sd_setImageWithURL:[NSURL URLWithString:imageUrl] placeholderImage:self.defaultImage];
+            
         } else if ([item isKindOfClass:[DKCarouselViewItem class]]) {
             UIView *customView = [(DKCarouselViewItem *)item view];
             customView.frame = itemView.bounds;
