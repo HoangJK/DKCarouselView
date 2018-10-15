@@ -86,6 +86,7 @@ typedef void(^DKCarouselViewTapBlock)();
 @property (nonatomic, strong) NSTimer *autoPagingTimer;
 @property (nonatomic, copy) DKCarouselViewDidSelectBlock didSelectBlock;
 @property (nonatomic, copy) DKCarouselViewDidChangeBlock didChangeBlock;
+@property (nonatomic, copy) DKCarouselViewDidScrollBlock didScrollBlock;
 
 @end
 
@@ -267,6 +268,10 @@ typedef void(^DKCarouselViewTapBlock)();
     _didChangeBlock = didChangeBlock;
 }
 
+- (void)setDidScrollBlock:(DKCarouselViewDidScrollBlock)didScrollBlock {
+    _didScrollBlock = didScrollBlock;
+}
+
 - (void)setAutoPagingForInterval:(NSTimeInterval)timeInterval {
     assert(timeInterval >= 0);
     if (self.autoPagingTimer.timeInterval == timeInterval) {
@@ -325,7 +330,7 @@ typedef void(^DKCarouselViewTapBlock)();
             if (view.superview == nil) {
                 [self.scrollView addSubview:view];
             }
-
+            
             view.frame = CGRectMake(i * kScrollViewFrameWidth,
                                     0,
                                     kScrollViewFrameWidth,
@@ -384,22 +389,25 @@ typedef void(^DKCarouselViewTapBlock)();
         }
         
     }
-    else if (scrollView.isDragging) {
-        self.autoPagingTimer.fireDate = [NSDate dateWithTimeIntervalSinceNow:self.autoPagingTimer.timeInterval];
-        
-        if (self.carouselItemViews.count == 2) {
-            if (scrollView.contentOffset.x < kScrollViewFrameWidth) {
-                UIView *previousView = self.carouselItemViews[GetPreviousIndex()];
-                if (!CGRectEqualToRect(CGRectMake(0, 0, kScrollViewFrameWidth, kScrollViewFrameHeight), previousView.frame)) {
-                    [self insertPreviousPage];
-                }
-            } else if (scrollView.contentOffset.x > kScrollViewFrameWidth * 2) {
-                UIView *nextView = self.carouselItemViews[GetNextIndex()];
-                if (!CGRectEqualToRect(CGRectMake(kScrollViewFrameWidth * 2, 0, kScrollViewFrameWidth, kScrollViewFrameHeight), nextView.frame)) {
-                    [self insertNextPage];
-                }
-            }
-        }
+//    else if (scrollView.isDragging) {
+//        self.autoPagingTimer.fireDate = [NSDate dateWithTimeIntervalSinceNow:self.autoPagingTimer.timeInterval];
+//
+//        if (self.carouselItemViews.count == 2) {
+//            if (scrollView.contentOffset.x < kScrollViewFrameWidth) {
+//                UIView *previousView = self.carouselItemViews[GetPreviousIndex()];
+//                if (!CGRectEqualToRect(CGRectMake(0, 0, kScrollViewFrameWidth, kScrollViewFrameHeight), previousView.frame)) {
+//                    [self insertPreviousPage];
+//                }
+//            } else if (scrollView.contentOffset.x > kScrollViewFrameWidth * 2) {
+//                UIView *nextView = self.carouselItemViews[GetNextIndex()];
+//                if (!CGRectEqualToRect(CGRectMake(kScrollViewFrameWidth * 2, 0, kScrollViewFrameWidth, kScrollViewFrameHeight), nextView.frame)) {
+//                    [self insertNextPage];
+//                }
+//            }
+//        }
+//    }
+    if (self.didScrollBlock != nil) {
+        self.didScrollBlock(self,scrollView ,scrollView.contentOffset.x);
     }
 }
 
