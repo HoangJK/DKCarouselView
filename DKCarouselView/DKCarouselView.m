@@ -9,12 +9,12 @@
 
 #import "DKCarouselView.h"
 
-typedef void(^DKCarouselViewTapBlock)();
+//typedef void(^DKCarouselViewTapBlock)();
 
 @interface DKClickableImageView : UIImageView
 
 @property (nonatomic, assign) BOOL enable;
-@property (nonatomic, copy) DKCarouselViewTapBlock tapBlock;
+//@property (nonatomic, copy) DKCarouselViewTapBlock tapBlock;
 
 @end
 
@@ -38,17 +38,17 @@ typedef void(^DKCarouselViewTapBlock)();
     self.userInteractionEnabled = YES;
     self.enable = YES;
     
-    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onTap:)];
-    [self addGestureRecognizer:tapGesture];
+//    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onTap:)];
+//    [self addGestureRecognizer:tapGesture];
 }
 
-- (IBAction)onTap:(id)sender {
-    if (!self.enable) return;
-    
-    if (self.tapBlock) {
-        self.tapBlock();
-    }
-}
+//- (IBAction)onTap:(id)sender {
+//    if (!self.enable) return;
+//
+//    if (self.tapBlock) {
+//        self.tapBlock();
+//    }
+//}
 
 @end
 
@@ -245,11 +245,11 @@ typedef void(^DKCarouselViewTapBlock)();
             assert(0);
         }
         
-        [itemView setTapBlock:^ {
-            if (self.didSelectBlock != nil) {
-                self.didSelectBlock(item, index);
-            }
-        }];
+//        [itemView setTapBlock:^ {
+//            if (self.didSelectBlock != nil) {
+//                self.didSelectBlock(item, index);
+//            }
+//        }];
         
         index++;
         [self.carouselItemViews addObject:itemView];
